@@ -115,13 +115,13 @@ impl Transaction {
                     Validation::Valid
                 }
             }
-            // Transaction no signature ...
+            // Transaction has no signature ...
             Signature::Unsigned => Validation::Unsigned
         };
 
         match first {
             Validation::Valid => {
-                // Check if all amounts ar non zero ...
+                // Check if all amounts are non zero ...
                 if self.outputs.iter().map(|x| x.amount).any(|x| x==0) {
                     Validation::InvalidAmount
                 } else {
