@@ -377,7 +377,7 @@ mod tests {
 
         // Transfer half of it to user2 ...
         // There are 100 credits contained in one block. They will be split up by creating
-        // another transaction worth 50 credits a change and assigning it back to user1
+        // another transaction worth 50 credits as change and assigning it back to user1.
         let mut transaction = Transaction::new(&mut chain, &user1, user2.public_key, 50); {
             // sign the transaction
             transaction.sign(&user1);
@@ -393,7 +393,7 @@ mod tests {
             chain.add(&transaction);
         }
 
-        // Have user two send all but one credit to user3 ...
+        // Send all but one credit to user3 ...
         let mut transaction = Transaction::new(&mut chain, &user2, user3.public_key, 89); {
             transaction.sign(&user2);
             chain.add(&transaction);
