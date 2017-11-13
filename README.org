@@ -1,0 +1,42 @@
+* Rusty Coins
+
+This is a toy example of a cryptocurrency.
+
+Example:
+#+BEGIN_SRC rust
+        // Create 3 users ...
+        let user1 = Wallet::new();
+        let user2 = Wallet::new();
+        let user3 = Wallet::new();
+
+        // Grand user1 all the total_credits (100)
+        let mut chain = Chain::new(100, user1.public_key);
+
+        // Transfer half of it to user2 ...
+        // There are 100 credits contained in one block. They will be split up by creating
+        // another transaction worth 50 credits a change and assigning it back to user1
+        let mut transaction = Transaction::new(&mut chain, &user1, user2.public_key, 50); {
+            // sign the transaction
+            transaction.sign(&user1);
+            // add transaction to the chain
+            chain.add(&transaction);
+        }
+
+        // Transfer another 40 to user2 ...
+        let mut transaction = Transaction::new(&mut chain, &user1, user2.public_key, 40); {
+            chain.worth(user1.public_key);
+            transaction.sign(&user1);
+            chain.add(&transaction);
+        }
+
+        // Have user two send all but one credit to user3 ...
+        let mut transaction = Transaction::new(&mut chain, &user2, user3.public_key, 89); {
+            transaction.sign(&user2);
+            chain.add(&transaction);
+        }
+        
+        // Check if users have the expected amount of money ...
+        assert!(chain.worth(user1.public_key) == 10);
+        assert!(chain.worth(user2.public_key) == 1);
+        assert!(chain.worth(user3.public_key) == 89);
+#+END_SRC
