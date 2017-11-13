@@ -17,9 +17,6 @@ use ed25519_dalek::Keypair;
 use ed25519_dalek::PublicKey;
 use ed25519_dalek::Signature as EDSignature;
 
-/// The total amount of credits in the genesis block.
-const TOTAL_CREDITS: isize = 100;
-
 /// A wallet contains the public- and private key of a 'rusty coin' user.
 /// Money can be transfered to a user's public key and transactions are
 /// signed using a users private key.
@@ -168,9 +165,9 @@ struct Chain {
 }
 
 impl Chain {
-    /// Create a new blockchain with a genesis transaction of TOTAL_CREDITS.
+    /// Create a new blockchain with a genesis transaction of total_credits.
     /// These's credits are transfered to the lucky_public_key.
-    fn new(lucky_public_key: [u8; 32]) -> Chain {
+    fn new(total_credits: isize, lucky_public_key: [u8; 32]) -> Chain {
         let root_user = Wallet::new();
         // Create the genesis transaction. We must do this by hand because we do
         // not have any inputs.
@@ -180,7 +177,7 @@ impl Chain {
             change: 0,
             outputs: vec![Output {
                 public_key_receiver: lucky_public_key,
-                amount: TOTAL_CREDITS
+                amount: total_credits
             }],
             signature: Signature::Unsigned
         };
@@ -375,8 +372,8 @@ mod tests {
         let user2 = Wallet::new();
         let user3 = Wallet::new();
 
-        // Grand user1 all the TOTAL_CREDITS (100)
-        let mut chain = Chain::new(user1.public_key);
+        // Grand user1 all the total_credits (100)
+        let mut chain = Chain::new(100, user1.public_key);
 
         // Transfer half of it to user2 ...
         // There are 100 credits contained in one block. They will be split up by creating
@@ -401,7 +398,6 @@ mod tests {
             transaction.sign(&user2);
             chain.add(&transaction);
         }
-
         
         // Check if users have the expected amount of money ...
         assert!(chain.worth(user1.public_key) == 10);
@@ -414,9 +410,9 @@ mod tests {
         let user1 = Wallet::new();
         let user2 = Wallet::new();
 
-        let mut chain = Chain::new(user1.public_key);
+        let mut chain = Chain::new(100, user1.public_key);
 
-        // User1 has TOTAL_CREDITS (100) credits, transfer 101 to user2
+        // User1 has total_credits (100), transfer 101 to user2
         let mut transaction = Transaction::new(&mut chain, &user1, user2.public_key, 101);
         transaction.sign(&user1);
         let validation = chain.add(&transaction);
@@ -433,7 +429,7 @@ mod tests {
     fn wrong_signature() {
         let user1 = Wallet::new();
         let user2 = Wallet::new();
-        let mut chain = Chain::new(user1.public_key);
+        let mut chain = Chain::new(100, user1.public_key);
 
         let mut transaction = Transaction::new(&mut chain, &user1, user2.public_key, 1);
         // Sign with wrong wallet
@@ -453,7 +449,7 @@ mod tests {
     fn no_signature() {
         let user1 = Wallet::new();
         let user2 = Wallet::new();
-        let mut chain = Chain::new(user1.public_key);
+        let mut chain = Chain::new(100, user1.public_key);
 
         let transaction = Transaction::new(&mut chain, &user1, user2.public_key, 1);
         let validation = chain.add(&transaction);
@@ -470,7 +466,7 @@ mod tests {
     fn double_spend() {
         let user1 = Wallet::new();
         let user2 = Wallet::new();
-        let mut chain = Chain::new(user1.public_key);
+        let mut chain = Chain::new(100, user1.public_key);
 
         let mut transaction = Transaction::new(&mut chain, &user1, user2.public_key, 1);
         transaction.sign(&user1);
@@ -492,7 +488,7 @@ fn main() {
     // Transfer 100 credits to user ...
     let me = Wallet::new();
     let you = Wallet::new();
-    let mut chain = Chain::new(me.public_key);
+    let mut chain = Chain::new(100, me.public_key);
     let mut transaction = Transaction::new(&mut chain, &me, you.public_key, 100);
     transaction.sign(&me);
     chain.add(&transaction);
